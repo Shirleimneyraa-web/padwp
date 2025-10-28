@@ -1,0 +1,73 @@
+=== ANOVA DBCA ===
+            Df   Sum Sq  Mean Sq F value   Pr(>F)    
+Dosis        4 44784224 11196056 267.716 1.28e-11 ***
+Bloque       3    13193     4398   0.105    0.955    
+Residuals   12   501847    41821                     
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+=== PRUEBA DE TUKEY ===
+$statistics
+   MSerror Df     Mean       CV      MSD
+  41820.57 12 15839.31 1.291097 460.9151
+
+$parameters
+   test name.t ntr StudentizedRange alpha
+  Tukey  Dosis   5          4.50771  0.05
+
+$means
+     Rendimiento_kg_ha       std r       se      Min      Max      Q25      Q50
+0             13829.93 219.36249 4 102.2504 13509.55 13979.03 13777.24 13915.56
+1000          18332.73  62.77581 4 102.2504 18288.81 18425.84 18301.27 18308.13
+400           15254.41  67.97953 4 102.2504 15153.95 15299.56 15242.45 15282.06
+600           15344.71 319.44807 4 102.2504 15015.00 15720.06 15120.23 15321.89
+800           16434.76 113.80187 4 102.2504 16287.61 16565.25 16401.21 16443.10
+          Q75
+0    13968.26
+1000 18339.60
+400  15294.02
+600  15546.37
+800  16476.65
+
+$comparison
+NULL
+
+$groups
+     Rendimiento_kg_ha groups
+1000          18332.73      a
+800           16434.76      b
+600           15344.71      c
+400           15254.41      c
+0             13829.93      d
+
+attr(,"class")
+[1] "group"
+
+=== PRUEBA DE DUNCAN ===
+     Rendimiento_kg_ha groups
+1000          18332.73      a
+800           16434.76      b
+600           15344.71      c
+400           15254.41      c
+0             13829.93      d
+
+=== REGRESIÓN ===
+
+Call:
+lm(formula = Rendimiento_kg_ha ~ Dosis_kg_ha, data = datos_dbca)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-989.11 -383.01   34.66  436.17  773.71 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 13532.083    227.419   59.50  < 2e-16 ***
+Dosis_kg_ha     4.120      0.346   11.91 5.72e-10 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 532.4 on 18 degrees of freedom
+Multiple R-squared:  0.8873,	Adjusted R-squared:  0.8811 
+F-statistic: 141.8 on 1 and 18 DF,  p-value: 5.716e-10
+
