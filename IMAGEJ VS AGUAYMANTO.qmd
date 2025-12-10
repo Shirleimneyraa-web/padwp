@@ -280,7 +280,7 @@ ggplot(df, aes(x = AREA_ij, y = AREA_qgis)) +
   theme_minimal()
 ```
 
-#Conclusiones
+# Conclusiones
 
 Las mediciones de longitud, ancho y área obtenidas con ImageJ y QGIS mostraron una alta concordancia, evidenciada por las regresiones lineales realizadas, lo cual demuestra que ambos programas son confiables y precisos para la caracterización morfométrica de hojas de aguaymanto.
 
