@@ -1,0 +1,18 @@
+---
+title: "maiz"
+author: "Shirlei Neyra"
+format: html
+
+---
+
+## Cargar paquetes
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(emmeans)
+library(FactoMineR)
+```
+
+#Cargar base de datos
+

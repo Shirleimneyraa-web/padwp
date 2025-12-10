@@ -1,0 +1,323 @@
+---
+title: "Comparación de Métodos Digitales para Medir Área y Longitud Foliar: ImageJ vs QGIS"
+author: "G3 UIII"
+format: 
+  html:
+    toc: true
+    toc-expand: true
+    toc-depth: 4
+    toc-location: left
+    number-sections: true
+    self-contained: true
+    code-fold: true
+    output-file: "ESM"
+editor_options: 
+  chunk_output_type: console
+execute: 
+  warning: false
+  message: false
+  echo: true
+---
+
+Introducción
+
+La medición de parámetros foliares, como el **área** y la **longitud**, es fundamental en estudios fisiológicos, ecofisiológicos, agronómicos y de modelamiento de crecimiento vegetal. Las hojas representan el principal órgano fotosintético y su tamaño permite estimar biomasa, eficiencia hídrica, productividad y estado nutricional.
+
+Existen diferentes herramientas para medir hojas, entre ellas **ImageJ** y **QGIS**, ambas ampliamente utilizadas en investigación científica por su precisión y facilidad de uso:
+
+![](LOGOQGIS.png){width=60%}
+
+- **ImageJ** se especializa en análisis de imágenes 2D.
+- **QGIS** es un sistema de información geográfica capaz de medir áreas y longitudes con alta precisión.
+
+![](LOGOimageJ.png){width=60%}
+
+El presente análisis compara los valores obtenidos en 25 hojas de *Physalis peruviana* (aguaymanto) utilizando ambos programas.
+
+
+![](AGUAYMANTO.jpg){width=60%}
+---
+
+# Objetivos
+
+## Objetivo general
+Comparar la precisión y concordancia de las mediciones de área y longitud de hojas de aguaymanto realizadas en **ImageJ** y **QGIS**.
+
+## Objetivos específicos
+
+- Medir el área y longitud de 25 hojas en ambos softwares.
+- Evaluar la relación lineal entre ambos métodos.
+- Determinar si existe concordancia o diferencias sistemáticas entre ImageJ y QGIS.
+- Generar gráficos de dispersión y regresión lineal para interpretar resultados.
+
+---
+
+# Importancia de medir parámetros foliares
+
+El área y longitud de la hoja permiten:
+
+- Estimar el **índice de área foliar (IAF)**.
+- Evaluar el crecimiento y vigor de la planta.
+- Determinar eficiencia fotosintética.
+- Relacionar tamaño foliar con productividad.
+- Identificar estrés hídrico o nutricional.
+
+La medición digital ha reemplazado métodos manuales debido a su precisión, rapidez y capacidad para procesar grandes cantidades de muestras.
+
+---
+
+# Comparación entre ImageJ y QGIS
+
+| Característica | ImageJ | QGIS |
+|----------------|--------|------|
+| Tipo de software | Análisis de imágenes | Sistema de información geográfica |
+| Precisión | Alta en 2D | Muy alta, calibrado espacialmente |
+| Facilidad de uso | Muy sencilla | Requiere pasos adicionales |
+| Formato de entrada | JPG, PNG, TIFF | Raster o georreferenciado |
+| Aplicación común | Laboratorio | Cartografía, fotogrametría, morfometría |
+| Ideal para | Hojas individuales | Polígonos complejos, mapas, colecciones grandes |
+
+Ambos programas pueden medir área y longitud con precisión comparable, pero la metodología varía.
+
+---
+
+# Materiales y Métodos
+
+## Material vegetal
+
+Se utilizaron 25 hojas representativas de *Physalis peruviana* (aguaymanto), recolectadas de plantas sanas.
+
+## Obtención de imágenes
+
+- Las hojas fueron escaneadas en alta resolución.
+- Cada imagen incluyó una escala métrica.
+- Se guardaron en formato PNG/JPG.
+
+---
+
+# Procedimiento de medición
+
+## Medición en ImageJ
+1. Abrir la imagen.
+2. Definir escala mediante *Set Scale*.
+3. Delinear la hoja con la herramienta **Polygon** → obtener área.
+4. Medir longitud con **Straight line** o **Segmented line**.
+5. Exportar tabla en CSV.
+
+![](IMAGEJ.png){width=60%}
+
+## Medición en QGIS
+1. Importar imagen como raster.
+2. Calibrar escala mediante *georreferenciación* simple.
+3. Digitalizar el contorno usando una capa vectorial poligonal.
+4. Calcular área mediante *Field Calculator*.
+5. Medir longitud del eje principal con *Measure Line*.
+6. Exportar atributos como CSV.
+
+![](QGIS.png){width=60%}
+---
+
+
+#librerias
+
+```{r}
+library(googlesheets4)
+library(tidyverse)
+library(broom)
+library(ggplot2)
+```
+
+
+
+
+
+# Project Setup
+
+```{r}
+#| label:  setup
+
+source('https://inkaverse.com/setup.r')
+```
+
+# Tablas de base de datos
+
+```{r}
+gs <- "https://docs.google.com/spreadsheets/d/1dw3DXonb-P-CMaU4YLGr3WGMPa2v87zcbyGut7a1rzM/edit?gid=0#gid=0" %>% 
+  as_sheets_id()
+
+fb <- gs %>% 
+  range_read(ss = .,sheet = "fb - imageJ")
+
+gs <- "https://docs.google.com/spreadsheets/d/1fvyd0ljOu7F_A8H_iY6ruDk6CQ0udKJqrN_CxlVGjMA/edit?gid=0#gid=0" %>% 
+  as_sheets_id()
+
+fb <- gs %>% 
+  range_read(ss = .,sheet = "fb -qgis")
+```
+
+#Resultados
+
+## Grafico de regresion lineal de los datos de longitud y area en hojas de aguaymanto
+
+#Regresion lineal de la HEIGHT
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+
+# 1. Cargar datos ImageJ
+img <- "https://docs.google.com/spreadsheets/d/1dw3DXonb-P-CMaU4YLGr3WGMPa2v87zcbyGut7a1rzM/edit?gid=0#gid=0" %>% 
+  as_sheets_id() %>% 
+  range_read(sheet = "fb - imageJ") %>% 
+  mutate(
+    ID = as.character(ID),
+    HEIGHT = as.numeric(HEIGHT)
+  )
+
+# 2. Cargar datos QGIS
+qgs <- "https://docs.google.com/spreadsheets/d/1fvyd0ljOu7F_A8H_iY6ruDk6CQ0udKJqrN_CxlVGjMA/edit?gid=0#gid=0" %>% 
+  as_sheets_id() %>% 
+  range_read(sheet = "fb -qgis") %>% 
+  mutate(
+    ID = as.character(ID),
+    HEIGHT = as.numeric(HEIGHT)
+  )
+
+# 3. Unir por ID
+df <- left_join(img, qgs, by = "ID", suffix = c("_ij", "_qgis"))
+
+# 4. Gráfico de regresión
+ggplot(df, aes(x = HEIGHT_ij, y = HEIGHT_qgis)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "steelblue") +
+  labs(
+    x = "HEIGHT (ImageJ)",
+    y = "HEIGHT (QGIS)",
+    title = "Regresión lineal de HEIGHT: ImageJ vs QGIS"
+  ) +
+  theme_minimal()
+```
+
+#Regresion lineal del WIDTH
+```{r}
+
+# datos ImageJ
+
+library(tidyverse)
+library(googlesheets4)
+
+# 1. Cargar datos ImageJ
+img <- "https://docs.google.com/spreadsheets/d/1dw3DXonb-P-CMaU4YLGr3WGMPa2v87zcbyGut7a1rzM/edit?gid=0#gid=0" %>% 
+  as_sheets_id() %>% 
+  range_read(sheet = "fb - imageJ") %>% 
+  mutate(
+    ID = as.character(ID),
+    WIDTH = as.numeric(WIDTH)
+  )
+
+# 2. Cargar datos QGIS
+qgs <- "https://docs.google.com/spreadsheets/d/1fvyd0ljOu7F_A8H_iY6ruDk6CQ0udKJqrN_CxlVGjMA/edit?gid=0#gid=0" %>% 
+  as_sheets_id() %>% 
+  range_read(sheet = "fb -qgis") %>% 
+  mutate(
+    ID = as.character(ID),
+    WIDTH = as.numeric(WIDTH)
+  )
+
+# 3. Unir por ID
+df <- left_join(img, qgs, by = "ID", suffix = c("_ij", "_qgis"))
+
+# 4. Gráfico de regresión WIDTH
+ggplot(df, aes(x = WIDTH_ij, y = WIDTH_qgis)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "steelblue") +
+  labs(
+    x = "WIDTH (ImageJ)",
+    y = "WIDTH (QGIS)",
+    title = "Regresión lineal de WIDTH: ImageJ vs QGIS"
+  ) +
+  theme_minimal()
+```
+
+
+# Regresion lineal del AREA
+
+```{r}
+
+library(tidyverse)
+library(googlesheets4)
+
+# 1. Cargar datos ImageJ
+img <- "https://docs.google.com/spreadsheets/d/1dw3DXonb-P-CMaU4YLGr3WGMPa2v87zcbyGut7a1rzM/edit?gid=0#gid=0" %>% 
+  as_sheets_id() %>% 
+  range_read(sheet = "fb - imageJ") %>% 
+  mutate(
+    ID = as.character(ID),
+    AREA = as.numeric(AREA)
+  )
+
+# 2. Cargar datos QGIS
+qgs <- "https://docs.google.com/spreadsheets/d/1fvyd0ljOu7F_A8H_iY6ruDk6CQ0udKJqrN_CxlVGjMA/edit?gid=0#gid=0" %>% 
+  as_sheets_id() %>% 
+  range_read(sheet = "fb -qgis") %>% 
+  mutate(
+    ID = as.character(ID),
+    AREA = as.numeric(AREA)
+  )
+
+# 3. Unir por ID
+df <- left_join(img, qgs, by = "ID", suffix = c("_ij", "_qgis"))
+
+# 4. Gráfico de regresión AREA
+ggplot(df, aes(x = AREA_ij, y = AREA_qgis)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "steelblue") +
+  labs(
+    x = "AREA (ImageJ)",
+    y = "AREA (QGIS)",
+    title = "Regresión lineal de AREA: ImageJ vs QGIS"
+  ) +
+  theme_minimal()
+```
+
+#Conclusiones
+
+Las mediciones de longitud, ancho y área obtenidas con ImageJ y QGIS mostraron una alta concordancia, evidenciada por las regresiones lineales realizadas, lo cual demuestra que ambos programas son confiables y precisos para la caracterización morfométrica de hojas de aguaymanto.
+
+Tanto ImageJ como QGIS cumplen adecuadamente con los objetivos del estudio, permitiendo medir de manera consistente las hojas; sin embargo, ImageJ destaca por su rapidez en mediciones simples, mientras que QGIS ofrece mayor precisión y flexibilidad en análisis de área y manejo espacial, complementándose según las necesidades de análisis.
+
+```
+
+# References
+
+1. Abramoff, M. D., Magalhães, P. J., & Ram, S. J. (2004).
+Image processing with ImageJ. Biophotonics International, 11(7), 36–42.
+➡ Referencia clásica para usar ImageJ en mediciones morfológicas.
+
+2. Schneider, C. A., Rasband, W. S., & Eliceiri, K. W. (2012).
+NIH Image to ImageJ: 25 years of image analysis. Nature Methods, 9(7), 671–675.
+➡ Base teórica del software utilizado para medir longitud, ancho y área.
+
+3. QGIS Development Team. (2024).
+QGIS Geographic Information System. Open Source Geospatial Foundation Project.
+➡ Documentación oficial del software SIG usado en las mediciones de área.
+
+4. Bivand, R. S., Pebesma, E., & Gómez-Rubio, V. (2013).
+Applied Spatial Data Analysis with R. Springer.
+➡ Sustento teórico para análisis espacial y procesamiento de polígonos (como áreas en QGIS).
+
+5. Wickham, H. (2016).
+ggplot2: Elegant Graphics for Data Analysis. Springer.
+➡ Base teórica para los gráficos de regresión lineal utilizados en R.
+
+6. Wickham, H., et al. (2019).
+Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686.
+➡ Sustento para el uso de dplyr, readr, ggplot2 y manejo de datos en el análisis.
+
+7. Allaire, J., Xie, Y., et al. (2022).
+Quarto: Reproducible Documents and Websites.
+➡ Referencia oficial para la construcción del documento final en formato Quarto.
+
+8. Pérez-Harguindeguy, N., et al. (2013).
+New handbook for standardised measurement of plant functional traits worldwide. Australian Journal of Botany, 61(3), 167–234.
+➡ Sustento metodológico sobre medición de rasgos foliares (longitud, ancho, área de hojas).

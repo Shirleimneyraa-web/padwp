@@ -1,0 +1,192 @@
+---
+title: "Maíz"
+author: "Shirlei Neyra"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+## Cargar paquetes
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(lme4)
+library(emmeans)
+library(FactoMineR)
+library(multcomp)
+library(car)
+
+```
+
+# Impotar base de datos
+```{r}
+url <- "https://docs.google.com/spreadsheets/d/1o4mtAkI1lBgoUzqDT-e7cIhIwh_K5m6CoxAx0ETvwXU/edit?gid=1753270824#gid=1753270824"
+
+gs <-url %>% 2
+  as_sheets_id()
+
+fb <- gs %>% 
+  range_read("fb") %>% 
+  mutate(across(1:bloque, ~as.factor(.)))
+
+str(fb)
+    
+  
+```
+#Modelo estadístico
+
+$$ rendimiento = \mu + bloque + porcinaza + densidad + porcinaza*densidad + e$$
+
+```{r}
+
+
+ggplot(fb, aes(x = porcinaza, y = rendiminto_g_ha, fill = densidad)) +
+  geom_boxplot(position = position_dodge(0.8), outlier.shape = NA) +
+  labs(
+    x = "Nivel de porcinaza (kg/ha)",
+    y = "Rendimiento (g/ha)",
+    fill = "Densidad"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "top",
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+```
+
+```
+
+#Boxplot 
+
+Con la base de datos fb hacer un grafico boxplot donde el eje x incluir niveles de porcinaza agrupados por densidad para la variable rendiminto_g_ha
+
+
+
+#Anova mazorcas_p
+
+Hacer el analis de varianza y mostrarme la tabla de ANOVA para la variable mazorcas_p en un diseño en bloques completos al azar para la interaccion de los factores: densidad y porcinaza
+
+```{r}
+# Ajustar modelo lineal mixto con bloque como efecto aleatorio
+model_maz <- lmer(mazorcas_p ~ densidad * porcinaza + (1 | bloque), data = fb)
+
+# Tabla ANOVA tipo II (compatible con diseño en bloques completos al azar)
+library(car)
+Anova(model_maz, type = "II")
+```
+
+```
+
+Del modelo hacer la comparación de medias usando el paquete emmeans y colocar las letras de significancia estadistica
+
+```{r}
+```{r}
+# Comparación de medias con emmeans
+library(emmeans)
+library(multcompView)
+
+# emmeans para la interacción densidad*porcinaza
+emm_maz <- emmeans(model_maz, ~ densidad * porcinaza, type = "response")
+
+# pruebas pareadas con corrección Tukey
+pairs(emm_maz, adjust = "tukey")
+
+# letras de significancia (compact letter display)
+cld_maz <- cld(emm_maz, Letters = letters, adjust = "tukey")
+cld_maz
+
+# Boxplot con letras de significancia
+ggplot(fb, aes(x = porcinaza, y = mazorcas_p, fill = densidad)) +
+  geom_boxplot(position = position_dodge(0.8), outlier.shape = NA) +
+  geom_text(data = cld_maz,
+            aes(label = .group,
+                y = max(fb$mazorcas_p, na.rm = TRUE) + 5),
+            position = position_dodge(0.8), vjust = 0) +
+  labs(x = "Nivel de porcinaza (kg/ha)",
+       y = "Mazorcas por planta",
+       fill = "Densidad") +
+  theme_minimal()
+```
+
+```
+de la barra de comparacion de medias, realizar un grafico de barras con la barra de error y la significancia. Poner porcinaza en el eje x agrupado por densidad
+
+
+
+
+```{r}
+# Resumen de medias y CI a partir de emmeans
+emm_sum <- summary(emm_maz, infer = c(TRUE, TRUE)) %>% 
+  as_tibble()
+
+# Añadir las letras de significancia
+emm_plot <- emm_sum %>% 
+  left_join(cld_maz %>% select(densidad, porcinaza, .group),
+            by = c("densidad", "porcinaza"))
+
+# Gráfico de barras con error bars y letras
+ggplot(emm_plot, aes(x = factor(porcinaza), y = emmean, fill = densidad)) +
+  geom_col(position = position_dodge(0.8), width = 0.7) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL),
+                position = position_dodge(0.8), width = 0.2) +
+  geom_text(aes(label = .group,
+                y = upper.CL + 0.05 * max(upper.CL, na.rm = TRUE)),
+            position = position_dodge(0.8), vjust = 0) +
+  labs(x = "Nivel de porcinaza (kg/ha)",
+       y = "Mazorcas por planta",
+       fill = "Densidad") +
+  theme_minimal()
+```
+
+```
+
+
+# Analisis multivariado 
+
+De la base de datos fb, hacer un PCA agrupado por densidad y porcinaza usando el paquete FactorMineR
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+
+# Variables numéricas a incluir en el PCA (excluyo variables de rendimiento si no se desean)
+num_vars <- fb %>% 
+  dplyr::select(where(is.numeric))
+
+# PCA
+pca_res <- PCA(num_vars, scale.unit = TRUE, graph = FALSE)
+
+# Data frame con coordenadas y factores de agrupación
+pca_df <- as_tibble(pca_res$ind$coord) %>% 
+  mutate(densidad = fb$densidad,
+         porcinaza = fb$porcinaza,
+         grupo = interaction(densidad, porcinaza))
+
+# Gráfico de individuos: colores por densidad, formas por porcinaza
+fviz_pca_ind(pca_res,
+             habillage = fb$densidad,
+             addEllipses = TRUE,
+             palette = "jco",
+             pointshape = as.numeric(fb$porcinaza),
+             repel = TRUE) +
+  labs(title = "PCA de la base fb (agrupado por densidad y porcinaza)")
+
+# Opcional: biplot con etiquetas de variables
+fviz_pca_biplot(pca_res,
+                col.ind = fb$densidad,
+                col.var = "steelblue",
+                addEllipses = TRUE,
+                repel = TRUE) +
+  labs(title = "Biplot del PCA")
+```
+
+```
+Has un grafico de correlacion 
+
+
+
+
+
+

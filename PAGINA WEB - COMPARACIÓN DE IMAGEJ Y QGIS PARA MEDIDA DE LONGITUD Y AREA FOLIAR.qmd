@@ -1,0 +1,20 @@
+---
+title: "Comparación de Métodos Digitales para Medir Área y Longitud Foliar: ImageJ vs QGIS"
+author: "G3 UIII"
+format: html
+  theme: cosmo
+  toc: true
+  toc_float: true
+---
+
+## Introducción
+```{r}
+La medición de parámetros foliares, como el **área** y la **longitud**, es fundamental en estudios fisiológicos, ecofisiológicos, agronómicos y de modelamiento de crecimiento vegetal. Las hojas representan el principal órgano fotosintético y su tamaño permite estimar biomasa, eficiencia hídrica, productividad y estado nutricional.
+
+Existen diferentes herramientas para medir hojas, entre ellas **ImageJ** y **QGIS**, ambas ampliamente utilizadas en investigación científica por su precisión y facilidad de uso:
+
+- **ImageJ** se especializa en análisis de imágenes 2D.
+- **QGIS** es un sistema de información geográfica capaz de medir áreas y longitudes con alta precisión.
+```
+
+

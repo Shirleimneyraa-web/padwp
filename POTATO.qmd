@@ -1,0 +1,15 @@
+---
+title: "wue potato"
+author: "Shirlei Neyra"
+format: html
+---
+
+Library
+```{r}
+library (lme4)
+library(ggplot2)
+library(googlesheets4)
+library(dplyr)
+
+```
+1. IMPORTAR LA BASE DE DATOS DESDE GOOGLE SHEETS

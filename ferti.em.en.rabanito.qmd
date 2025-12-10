@@ -1,0 +1,90 @@
+---
+title: "ferti.em.en.rabanito"
+author: "U2-G4"
+format: html
+editor: visual
+---
+
+#Librerias
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(broom)
+library(readxl)
+library(agricolae)
+library(car)
+library(janitor)
+library(broom)
+library(rstatix)
+library(ggpubr)
+library(performance)
+library(emmeans)
+```
+
+# Cargar los datos
+
+
+```{r}
+url <- "https://docs.google.com/spreadsheets/d/1H6ODSreY6aF4e7EKeo1BitMFvPEDjZ9ZMql7XzHoM_s/edit?gid=973529244#gid=973529244"
+
+gs <- url %>% 
+  as_sheets_id()
+
+fb <- gs %>% 
+  range_read("fb") %>% 
+  mutate(across(c(trat:bloque), factor))
+
+str(fb)
+```
+# Modelo estadistico
+
+$$ rendimiento = \mu + bloque + trat + dosis + dosis*trat + e$$
+
+# Boxplot
+
+Con la base de datos fb hacer un grafico boxplot donde en el eje x incluir niveles de dosis agrupados por trat para la variable rendimiento_kg_ha
+
+```{r}
+ggplot(fb, aes(x = factor(dosis_kg_ha), y = rendimiento_kg_ha, fill = trat)) +
+geom_boxplot(position = position_dodge(width = 0.8)) +
+labs(x = "Dosis (kg ha⁻¹)", y = "Rendimiento (kg ha⁻¹)", fill = "Tratamiento") +
+theme_minimal()
+```
+
+# ANOVA diam_bulbo_cm
+
+Hacer el análisis de variancia y mostrame la tabla de ANOVA para la variable diam_bulbo_cm en un diseño en bloques completos al azar para la interacción de los factores: trat	y dosis_kg_ha
+
+```{r}
+model_diam <- aov(diam_bulbo_cm ~ rendimiento_kg_ha * dosis_kg_ha + Error(bloque/(rendimiento_kg_ha*dosis_kg_ha)), data = fb)
+summary(model_diam)
+
+```
+
+Del modelo hacer la comparación de medias usando el paquete emmeans y colocar las letras de significancia estadistica
+
+
+```{r}
+library(emmeans)
+library(multcompView)
+library(dplyr)
+
+# emmeans de la interacción
+emm <- emmeans(model_diam, ~ rendimiento_kg_ha:dosis_kg_ha)
+
+# comparaciones por pares con ajuste Tukey
+pairs <- contrast(emm, method = "pairwise", adjust = "tukey")
+pw    <- summary(pairs)$p.value
+names(pw) <- summary(pairs)$contrast   # e.g. "15921:560 - 15921:400"
+
+
+
+
+```
+
+
+
+

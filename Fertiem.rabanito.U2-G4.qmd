@@ -1,0 +1,47 @@
+---
+title: "fertiem.en.rabanito"
+author: "Shirlei Milagros Neyra Alarcon"
+format: html
+editor_options:
+  chunk_output_type: console
+---
+
+# librerías
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(lme4)
+library(agricolae)
+library(ggplot2)
+```
+
+# Cargar base de datos
+
+https://docs.google.com/spreadsheets/d/1yPaHuoOx4wSpDXRrce2Tk_yzLYm3PEKJabMwUcIz-jY/edit?gid=1649176311#gid=1649176311
+
+```{r}
+url <- "https://docs.google.com/spreadsheets/d/1yPaHuoOx4wSpDXRrce2Tk_yzLYm3PEKJabMwUcIz-jY/edit?gid=1649176311#gid=1649176311"
+
+gs <- url %>% 
+  as_sheets_id()
+
+fb <- gs %>% 
+  range_read("Datos_experimentales") %>% 
+  mutate(across(1:bloque.~as.factor(.)))
+
+str(fb)
+
+```
+
+#modelo
+
+$$  wue_{tuber} = \mu + tratamiento + dosis +rendimiento+dosis*rendimiento +e $$
+
+
+
+
+
+
+
+
