@@ -10,7 +10,7 @@ format:
     number-sections: true
     self-contained: true
     code-fold: true
-    output-file: "ESM"
+    output-file: "index"
 editor_options: 
   chunk_output_type: console
 execute: 
